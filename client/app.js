@@ -111,12 +111,43 @@ function ensureBottomNav(){
 
   const nav = document.createElement("nav");
   nav.className = "bottomnav";
+
   nav.innerHTML = `
-    <a href="ratings.html">My</a>
-    <a href="add.html">Add</a>
-    <a href="select.html">Search</a>
-    <a href="public.html">Public</a>
+    <a href="ratings.html" aria-label="My Ratings">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M7 4h10M7 8h10M7 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M6.5 2.8h11a2.2 2.2 0 0 1 2.2 2.2v14a2.2 2.2 0 0 1-2.2 2.2h-11A2.2 2.2 0 0 1 4.3 19V5a2.2 2.2 0 0 1 2.2-2.2Z" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+      <span>Ratings</span>
+    </a>
+
+    <a href="select.html" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M16.7 16.7 21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span>Search</span>
+    </a>
+
+    <a class="add" href="add.html" aria-label="Add Rating">
+      <div class="addbtn">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span>Add</span>
+    </a>
+
+    <a href="public.html" aria-label="Public">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 3c2.6 2.7 4.2 5.8 4.2 9S14.6 18.3 12 21c-2.6-2.7-4.2-5.8-4.2-9S9.4 5.7 12 3Z" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+      <span>Public</span>
+    </a>
   `;
+
   document.body.appendChild(nav);
 }
 
