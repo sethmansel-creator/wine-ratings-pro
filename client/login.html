@@ -5,38 +5,100 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Login • Wine Ratings</title>
   <link rel="stylesheet" href="styles.css"/>
+
+  <style>
+    /* ===== LOGIN HERO BACKGROUND ===== */
+    body.login-page {
+      margin: 0;
+      background-image: url("assets/login-hero.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+    }
+
+    .login-overlay {
+      min-height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      max-width: 520px;
+      width: 100%;
+      backdrop-filter: blur(8px);
+      background: rgba(20, 20, 20, 0.75);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .login-card h1 {
+      margin-top: 0;
+    }
+
+    .top-nav {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .top-nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 15px;
+      font-weight: 500;
+    }
+
+    .top-nav a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
-<body data-page="login">
-<header>
-  <div class="nav">
-    <div class="brand">🍷 Wine Ratings</div>
-    <div class="navlinks">
-      <a href="login.html">Login</a>
+
+<body data-page="login" class="login-page">
+
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div style="font-size:20px; font-weight:600;">🍷 Wine Ratings</div>
+    <div>
       <a href="register.html">Register</a>
-      <span class="badge" id="who">Not signed in</span>
     </div>
   </div>
-</header>
 
-<main>
-  <section class="card" style="max-width:520px; margin:0 auto;">
-    <h1>Login</h1>
-    <div class="muted">Use the account you already registered.</div>
-
-    <form id="loginForm">
-      <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="email" required>
-
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" minlength="8" required>
-
-      <div class="actions" style="margin-top:10px">
-        <button type="submit">Login</button>
-        <a class="secondary" style="text-align:center; padding:10px; border-radius:10px;" href="register.html">Create account</a>
+  <div class="login-overlay">
+    <section class="login-card">
+      <h1>Welcome Back</h1>
+      <div class="muted" style="margin-bottom:20px;">
+        Track your wines. Share your taste.
       </div>
-    </form>
-  </section>
-</main>
+
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+
+        <div class="actions" style="margin-top:15px">
+          <button type="submit">Login</button>
+          <a class="secondary"
+             style="text-align:center; padding:10px; border-radius:10px;"
+             href="register.html">
+             Create account
+          </a>
+        </div>
+      </form>
+    </section>
+  </div>
 
 <script src="app.js"></script>
 </body>

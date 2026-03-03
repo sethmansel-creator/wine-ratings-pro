@@ -72,3 +72,27 @@ button.secondary{
 .actions > *{ flex:1; }
 
 hr{ border:0; border-top: 1px solid rgba(255,255,255,.10); margin: 12px 0; }
+
+/* ===== LOGIN PAGE HERO ===== */
+
+.login-page {
+  background-image: url("assets/login-hero.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+.login-overlay {
+  min-height: 100vh;
+  background: rgba(0, 0, 0, 0.55); /* dark overlay for readability */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  max-width: 420px;
+  width: 100%;
+}
