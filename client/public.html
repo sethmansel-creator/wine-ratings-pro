@@ -11,10 +11,14 @@
   <div class="nav">
     <div class="brand">🍷 Wine Ratings</div>
     <div class="navlinks">
-      <a href="public.html">Public</a>
-      <a href="login.html">Login</a>
-      <a href="register.html">Register</a>
-    </div>
+  <a href="public.html">Public</a>
+  <a href="ratings.html">My Ratings</a>
+  <a href="add.html">Add</a>
+  <a href="select.html">Wine Enthusiast</a>
+  <a href="login.html">Login</a>
+  <a href="register.html">Register</a>
+  <button class="secondary" id="backBtn" style="width:auto;">Back</button>
+</div>
   </div>
 </header>
 
@@ -94,6 +98,11 @@ async function load(){
 
 document.getElementById("refreshBtn").addEventListener("click", () => load());
 document.getElementById("moreBtn").addEventListener("click", () => { limit = Math.min(limit + 100, 500); load(); });
+
+const backBtn = document.getElementById("backBtn");
+if(backBtn){
+  backBtn.addEventListener("click", () => history.length > 1 ? history.back() : (location.href = "ratings.html"));
+}
 
 load();
 </script>
