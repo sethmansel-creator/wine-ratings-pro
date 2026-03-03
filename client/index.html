@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wine Ratings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+
+  <h1>Wine Ratings</h1>
+
+  <div class="card">
+    <h2>Register</h2>
+    <input id="regEmail" placeholder="Email">
+    <input id="regPassword" type="password" placeholder="Password">
+    <button onclick="register()">Register</button>
+  </div>
+
+  <div class="card">
+    <h2>Login</h2>
+    <input id="loginEmail" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="card">
+    <h2>Add Rating</h2>
+    <input id="wineName" placeholder="Wine Name">
+    <input id="myScore" type="number" placeholder="My Score (0-10)">
+    <input id="weScore" type="number" placeholder="WE Score (0-100)">
+    <textarea id="notes" placeholder="Notes"></textarea>
+    <button onclick="addRating()">Save Rating</button>
+  </div>
+
+  <div class="card">
+    <h2>Your Ratings</h2>
+    <div id="ratingsList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Wine Enthusiast Search</h2>
+    <a href="select.html">Search Wine Enthusiast</a>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

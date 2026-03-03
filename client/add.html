@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Add Rating • Wine Ratings</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="add">
+<header>
+  <div class="nav">
+    <div class="brand">🍷 Wine Ratings</div>
+    <div class="navlinks">
+      <a href="ratings.html">My Ratings</a>
+      <a href="add.html">Add Rating</a>
+      <a href="select.html">Wine Enthusiast</a>
+      <button class="secondary" id="logoutBtn" style="width:auto;">Logout</button>
+      <span class="badge" id="who"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h1>Add a rating</h1>
+
+    <form id="addForm">
+      <div class="row">
+        <div>
+          <label for="wineName">Wine name</label>
+          <input id="wineName" required placeholder="Producer + cuvée">
+        </div>
+        <div>
+          <label for="vintage">Vintage</label>
+          <input id="vintage" placeholder="2021 (optional)">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="style">Style / grape</label>
+          <input id="style" placeholder="Pinot Noir">
+        </div>
+        <div>
+          <label for="price">Price (USD)</label>
+          <input id="price" placeholder="24.99">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="myScore">My score (0–10)</label>
+          <input id="myScore" type="number" min="0" max="10" step="0.1" value="8.0">
+        </div>
+        <div>
+          <label for="weScore">WE score (0–100)</label>
+          <input id="weScore" type="number" min="0" max="100" step="1" placeholder="92 (optional)">
+        </div>
+      </div>
+
+      <label for="tags">Tags (comma-separated)</label>
+      <input id="tags" placeholder="dinner, gift, cellar">
+
+      <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+        <input id="favorite" type="checkbox" style="width:auto">
+        <label for="favorite" style="margin:0">Favorite</label>
+      </div>
+
+      <label for="sourceUrl">Source link (optional)</label>
+      <input id="sourceUrl" placeholder="Paste Wine Enthusiast review URL (https://...)">
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Tasting notes, pairing ideas…"></textarea>
+
+      <div class="actions">
+        <button type="submit">Save rating</button>
+        <a class="secondary" style="text-align:center; padding:10px; border-radius:10px;" href="ratings.html">Cancel</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

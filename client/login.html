@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Login • Wine Ratings</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="login">
+<header>
+  <div class="nav">
+    <div class="brand">🍷 Wine Ratings</div>
+    <div class="navlinks">
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+      <span class="badge" id="who">Not signed in</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card" style="max-width:520px; margin:0 auto;">
+    <h1>Login</h1>
+    <div class="muted">Use the account you already registered.</div>
+
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+
+      <div class="actions" style="margin-top:10px">
+        <button type="submit">Login</button>
+        <a class="secondary" style="text-align:center; padding:10px; border-radius:10px;" href="register.html">Create account</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

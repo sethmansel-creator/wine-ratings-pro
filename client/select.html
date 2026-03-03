@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Wine Enthusiast • Wine Ratings</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="select">
+<header>
+  <div class="nav">
+    <div class="brand">🍷 Wine Ratings</div>
+    <div class="navlinks">
+      <a href="ratings.html">My Ratings</a>
+      <a href="add.html">Add Rating</a>
+      <a href="select.html">Wine Enthusiast</a>
+      <button class="secondary" id="logoutBtn" style="width:auto;">Logout</button>
+      <span class="badge" id="who"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h1>Wine Enthusiast search helper</h1>
+    <div class="muted">This opens Wine Enthusiast in a new tab. Paste a review link back to attach it.</div>
+
+    <label for="q">Search terms</label>
+    <input id="q" placeholder="Producer, wine name, region…">
+
+    <div class="actions">
+      <button id="openSearch">Open search</button>
+      <button class="secondary" id="clearBtn" type="button">Clear</button>
+    </div>
+
+    <hr/>
+
+    <label for="pasteUrl">Paste the specific review URL</label>
+    <input id="pasteUrl" placeholder="https://www.wineenthusiast.com/buying-guide/...">
+
+    <div class="actions">
+      <button id="useUrl">Use this link in Add Rating</button>
+      <a class="secondary" style="text-align:center; padding:10px; border-radius:10px;" href="add.html">Back</a>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
