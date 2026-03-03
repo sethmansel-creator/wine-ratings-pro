@@ -6,7 +6,7 @@
   <title>Public Ratings • Wine Ratings</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
-<body data-page="public">
+<body>
 <header>
   <div class="nav">
     <div class="brand">🍷 Wine Ratings</div>
@@ -20,16 +20,14 @@
 
 <main>
   <section class="card">
-    <h1 id="title">Public ratings</h1>
-    <div class="muted" id="subtitle">Paste a public link like: <code>public.html?u=their-slug</code></div>
+    <h1>Public ratings</h1>
+    <div class="muted">Showing the latest public ratings from everyone.</div>
 
     <hr/>
 
-    <label for="slugInput">View a public profile</label>
-    <input id="slugInput" placeholder="their-public-slug (example: alex-1a2b3c)">
     <div class="actions">
-      <button id="viewBtn">View</button>
-      <button class="secondary" id="clearBtn" type="button">Clear</button>
+      <button id="refreshBtn">Refresh</button>
+      <button class="secondary" id="moreBtn" type="button">Load more</button>
     </div>
 
     <hr/>
@@ -40,6 +38,7 @@
 
 <script>
 const API_BASE = "https://wine-ratings-pro.onrender.com/api";
+let limit = 100;
 
 function esc(s){
   return (s ?? "").toString()
@@ -47,85 +46,56 @@ function esc(s){
     .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-async function loadBySlug(slug){
-  const title = document.getElementById("title");
-  const subtitle = document.getElementById("subtitle");
+async function load(){
   const list = document.getElementById("list");
-  list.innerHTML = "";
+  list.innerHTML = `<div class="muted">Loading…</div>`;
 
-  if(!slug){
-    title.textContent = "Public ratings";
-    subtitle.innerHTML = 'Paste a public link like: <code>public.html?u=their-slug</code>';
-    return;
-  }
-
-  title.textContent = "Loading…";
-  subtitle.textContent = "";
-
-  const res = await fetch(`${API_BASE}/public/${encodeURIComponent(slug)}`);
-  const data = await res.json().catch(() => ({}));
+  const res = await fetch(`${API_BASE}/public?limit=${limit}`);
+  const data = await res.json().catch(() => []);
 
   if(!res.ok){
-    title.textContent = "Not found";
-    subtitle.textContent = data.error || "Could not load public profile.";
+    list.innerHTML = `<div class="muted">Could not load public ratings.</div>`;
     return;
   }
 
-  title.textContent = `${data.user.displayName}’s public ratings`;
-  subtitle.innerHTML = `Share link: <code>public.html?u=${esc(data.user.slug)}</code>`;
-
-  const ratings = data.ratings || [];
-  if(!ratings.length){
+  if(!data.length){
     list.innerHTML = `<div class="muted">No public ratings yet.</div>`;
     return;
   }
 
-  for(const r of ratings){
+  list.innerHTML = "";
+  for(const r of data){
     const div = document.createElement("div");
     div.className = "item";
 
     const tags = Array.isArray(r.tags) ? r.tags : [];
-    const we = (r.we_score != null && r.we_score !== "") ? ` • WE: ${r.we_score}/100` : "";
+    const we = (r.weScore != null && r.weScore !== "") ? ` • WE: ${r.weScore}/100` : "";
 
     div.innerHTML = `
       <div class="itemhead">
         <div>
-          <div style="font-weight:750">${r.favorite ? "⭐ " : ""}${esc(r.wine_name)}</div>
-          <div class="muted" style="font-size:12px">${esc(r.style || "—")} • Vintage: ${esc(r.vintage || "—")}</div>
+          <div style="font-weight:750">${r.favorite ? "⭐ " : ""}${esc(r.wineName)}</div>
+          <div class="muted" style="font-size:12px">
+            By: ${esc(r.displayName)} • ${esc(r.style || "—")} • Vintage: ${esc(r.vintage || "—")}
+          </div>
         </div>
-        <div class="badge">My: ${Number(r.my_score).toFixed(1)}/10${we}</div>
+        <div class="badge">My: ${Number(r.myScore).toFixed(1)}/10${we}</div>
       </div>
 
       ${r.price ? `<div class="muted" style="margin-top:6px">Price: $${esc(r.price)}</div>` : ""}
       ${tags.length ? `<div class="muted" style="margin-top:6px">Tags: ${tags.map(esc).join(", ")}</div>` : ""}
       ${r.notes ? `<div style="margin-top:8px">${esc(r.notes)}</div>` : ""}
-      ${r.source_url ? `<div style="margin-top:8px"><a href="${r.source_url}" target="_blank" rel="noreferrer">Source link</a></div>` : ""}
+      ${r.sourceUrl ? `<div style="margin-top:8px"><a href="${r.sourceUrl}" target="_blank" rel="noreferrer">Source link</a></div>` : ""}
     `;
 
     list.appendChild(div);
   }
 }
 
-function init(){
-  const params = new URLSearchParams(location.search);
-  const u = (params.get("u") || "").trim();
-  if(u) document.getElementById("slugInput").value = u;
+document.getElementById("refreshBtn").addEventListener("click", () => load());
+document.getElementById("moreBtn").addEventListener("click", () => { limit = Math.min(limit + 100, 500); load(); });
 
-  loadBySlug(u);
-
-  document.getElementById("viewBtn").addEventListener("click", () => {
-    const slug = document.getElementById("slugInput").value.trim();
-    if(!slug) return;
-    location.href = `public.html?u=${encodeURIComponent(slug)}`;
-  });
-
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    document.getElementById("slugInput").value = "";
-    location.href = "public.html";
-  });
-}
-
-init();
+load();
 </script>
 </body>
 </html>

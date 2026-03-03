@@ -16,7 +16,12 @@ const DB_FILE = process.env.DB_FILE || "./data.sqlite";
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 
 const app = express();
+
+// If you want strict CORS, keep origin: CORS_ORIGIN.
+// If you want it to "just work" during development, use origin: true.
+// app.use(cors({ origin: true }));
 app.use(cors({ origin: CORS_ORIGIN }));
+
 app.use(express.json());
 
 const db = openDb(DB_FILE);
@@ -39,26 +44,16 @@ function safeUrl(url) {
   }
 }
 
-function makeSlugFromEmail(email, id) {
-  const base = (email.split("@")[0] || "user")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "")
-    .slice(0, 24) || "user";
-  return `${base}-${id.slice(0, 6)}`;
-}
-
 async function migrate() {
   // Add columns (ignore error if they already exist)
   try { await run(db, "ALTER TABLE users ADD COLUMN display_name TEXT"); } catch {}
-  try { await run(db, "ALTER TABLE users ADD COLUMN public_slug TEXT"); } catch {}
   try { await run(db, "ALTER TABLE ratings ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0"); } catch {}
 
   // Optional helpful indexes
-  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_users_public_slug ON users(public_slug)"); } catch {}
-  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_ratings_user_public ON ratings(user_id, is_public)"); } catch {}
+  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_ratings_public ON ratings(is_public, created_at)"); } catch {}
+  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_ratings_user ON ratings(user_id, created_at)"); } catch {}
 }
 
-// Run migration at startup
 await migrate();
 
 // Health check
@@ -87,14 +82,11 @@ app.post("/api/auth/register", async (req, res) => {
     [id, email, hash, Date.now()]
   );
 
-  // Set default display_name + public_slug for sharing
+  // Backfill display_name for this user
   const displayName = (email.split("@")[0] || "Wine Lover").slice(0, 40);
-  const slug = makeSlugFromEmail(email, id);
-  await run(db, "UPDATE users SET display_name=?, public_slug=? WHERE id=?", [
-    displayName,
-    slug,
-    id
-  ]);
+  try {
+    await run(db, "UPDATE users SET display_name=? WHERE id=?", [displayName, id]);
+  } catch {}
 
   const token = signToken({ userId: id, email }, JWT_SECRET);
   res.json({ token, email });
@@ -114,41 +106,89 @@ app.post("/api/auth/login", async (req, res) => {
   res.json({ token, email: user.email });
 });
 
-// -------- PUBLIC (no login) --------
-// Anyone can view a user's PUBLIC ratings by slug
-app.get("/api/public/:slug", async (req, res) => {
-  const slug = (req.params.slug || "").toLowerCase().trim();
-  if (!slug) return res.status(400).json({ error: "Missing slug." });
-
+// -------- ME (private, logged in) --------
+app.get("/api/me", authMiddleware(JWT_SECRET), async (req, res) => {
   const user = await get(
     db,
-    "SELECT id, display_name, public_slug FROM users WHERE lower(public_slug) = ?",
-    [slug]
+    "SELECT id, email, display_name, created_at FROM users WHERE id = ?",
+    [req.user.userId]
   );
-  if (!user) return res.status(404).json({ error: "Public profile not found." });
+  if (!user) return res.status(404).json({ error: "User not found" });
 
-  const ratings = await all(
-    db,
-    `
-    SELECT wine_name, vintage, style, price, my_score, we_score, notes, source_url, favorite, tags, created_at
-    FROM ratings
-    WHERE user_id = ? AND is_public = 1
-    ORDER BY created_at DESC
-    `,
-    [user.id]
-  );
+  // Ensure display name exists
+  if (!user.display_name) {
+    const displayName = (user.email.split("@")[0] || "Wine Lover").slice(0, 40);
+    try {
+      await run(db, "UPDATE users SET display_name=? WHERE id=?", [displayName, user.id]);
+      user.display_name = displayName;
+    } catch {}
+  }
 
   res.json({
-    user: {
-      displayName: user.display_name || "Wine Lover",
-      slug: user.public_slug
-    },
-    ratings: ratings.map(r => ({
-      ...r,
-      favorite: !!r.favorite,
-      tags: (() => { try { return JSON.parse(r.tags || "[]"); } catch { return []; } })()
-    }))
+    id: user.id,
+    email: user.email,
+    displayName: user.display_name || "Wine Lover",
+    createdAt: user.created_at
   });
+});
+
+// -------- PUBLIC FEED (no login) --------
+// Anyone can open /api/public and see all PUBLIC ratings (no emails shown)
+app.get("/api/public", async (req, res) => {
+  const limit = Math.min(Number(req.query.limit || 100), 500);
+
+  // Backfill display_name for older accounts (no email exposed, just username part)
+  try {
+    await run(
+      db,
+      "UPDATE users SET display_name = COALESCE(display_name, substr(email, 1, instr(email,'@')-1)) WHERE display_name IS NULL OR display_name = ''",
+      []
+    );
+  } catch {}
+
+  const rows = await all(
+    db,
+    `
+    SELECT
+      r.id,
+      r.wine_name,
+      r.vintage,
+      r.style,
+      r.price,
+      r.my_score,
+      r.we_score,
+      r.notes,
+      r.source_url,
+      r.favorite,
+      r.tags,
+      r.created_at,
+      u.display_name
+    FROM ratings r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.is_public = 1
+    ORDER BY r.created_at DESC
+    LIMIT ?
+    `,
+    [limit]
+  );
+
+  res.json(
+    rows.map(r => ({
+      id: r.id,
+      displayName: r.display_name || "Wine Lover",
+      wineName: r.wine_name,
+      vintage: r.vintage || "",
+      style: r.style || "",
+      price: r.price || "",
+      myScore: r.my_score,
+      weScore: r.we_score,
+      notes: r.notes || "",
+      sourceUrl: r.source_url || "",
+      favorite: !!r.favorite,
+      tags: (() => { try { return JSON.parse(r.tags || "[]"); } catch { return []; } })(),
+      createdAt: r.created_at
+    }))
+  );
 });
 
 // -------- RATINGS (private, logged in) --------
@@ -159,12 +199,14 @@ app.get("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
     [req.user.userId]
   );
 
-  res.json(rows.map(r => ({
-    ...r,
-    favorite: !!r.favorite,
-    tags: JSON.parse(r.tags || "[]"),
-    is_public: !!r.is_public
-  })));
+  res.json(
+    rows.map(r => ({
+      ...r,
+      favorite: !!r.favorite,
+      tags: (() => { try { return JSON.parse(r.tags || "[]"); } catch { return []; } })(),
+      is_public: !!r.is_public
+    }))
+  );
 });
 
 app.post("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
@@ -174,34 +216,39 @@ app.post("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
 
   const isPublic = b.isPublic ? 1 : 0;
 
-  await run(db, `
+  await run(
+    db,
+    `
     INSERT INTO ratings
     (id,user_id,wine_name,vintage,style,price,my_score,we_score,notes,source_url,favorite,tags,is_public,created_at,updated_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-  `, [
-    id,
-    req.user.userId,
-    b.wineName,
-    b.vintage || "",
-    b.style || "",
-    b.price || "",
-    b.myScore,
-    b.weScore || null,
-    b.notes || "",
-    safeUrl(b.sourceUrl),
-    b.favorite ? 1 : 0,
-    JSON.stringify(b.tags || []),
-    isPublic,
-    now,
-    now
-  ]);
+    `,
+    [
+      id,
+      req.user.userId,
+      b.wineName,
+      b.vintage || "",
+      b.style || "",
+      b.price || "",
+      b.myScore,
+      b.weScore || null,
+      b.notes || "",
+      safeUrl(b.sourceUrl),
+      b.favorite ? 1 : 0,
+      JSON.stringify(b.tags || []),
+      isPublic,
+      now,
+      now
+    ]
+  );
 
   const row = await get(db, "SELECT * FROM ratings WHERE id = ?", [id]);
   res.json(row);
 });
 
 app.delete("/api/ratings/:id", authMiddleware(JWT_SECRET), async (req, res) => {
-  await run(db,
+  await run(
+    db,
     "DELETE FROM ratings WHERE id = ? AND user_id = ?",
     [req.params.id, req.user.userId]
   );
