@@ -7,99 +7,219 @@
   <link rel="stylesheet" href="styles.css"/>
 
   <style>
-    /* ===== LOGIN HERO BACKGROUND ===== */
-    body.login-page {
+    /* ===== PREMIUM HERO BACKGROUND ===== */
+    body.login-premium {
       margin: 0;
+      min-height: 100vh;
       background-image: url("assets/login-hero.jpg");
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
     }
 
-    .login-overlay {
+    /* Cinematic wine overlay */
+    .premium-overlay {
       min-height: 100vh;
-      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background:
+        radial-gradient(1200px 600px at 15% 10%, rgba(255,255,255,0.10), rgba(255,255,255,0) 55%),
+        radial-gradient(1000px 700px at 85% 20%, rgba(160, 64, 96, 0.20), rgba(0,0,0,0) 60%),
+        linear-gradient(135deg, rgba(18, 12, 16, 0.75), rgba(10, 10, 12, 0.85)),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.4) 90%);
+      backdrop-filter: blur(1px);
+    }
+
+    /* Top navigation */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 28px;
+      position: sticky;
+      top: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .brand .logo {
+      font-size: 20px;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
+    }
+
+    .brand .name {
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.95;
+    }
+
+    .navlinks a {
+      color: rgba(255,255,255,0.9);
+      text-decoration: none;
+      margin-left: 16px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+    }
+
+    .navlinks a:hover {
+      text-decoration: underline;
+    }
+
+    /* Center content */
+    .wrap {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
 
-    .login-card {
+    /* Premium glass card */
+    .premium-card {
+      width: 100%;
       max-width: 520px;
-      width: 100%;
-      backdrop-filter: blur(8px);
-      background: rgba(20, 20, 20, 0.75);
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 32px 30px 28px;
+      background: rgba(14, 14, 16, 0.60);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.65),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+      animation: premiumFade 0.8s ease-out forwards;
     }
 
-    .login-card h1 {
-      margin-top: 0;
+    @keyframes premiumFade {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.01);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
-    .top-nav {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: white;
+    .premium-card h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0.5px;
     }
 
-    .top-nav a {
-      color: white;
-      text-decoration: none;
-      margin-left: 15px;
-      font-weight: 500;
+    .tagline {
+      margin: 0 0 20px;
+      color: rgba(255,255,255,0.75);
+      font-size: 14px;
+      line-height: 1.4;
     }
 
-    .top-nav a:hover {
-      text-decoration: underline;
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+      margin: 18px 0;
+    }
+
+    .premium-card label {
+      color: rgba(255,255,255,0.85);
+    }
+
+    .premium-card input {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.95);
+    }
+
+    .premium-card input:focus {
+      outline: none;
+      border-color: rgba(160, 64, 96, 0.6);
+      box-shadow: 0 0 0 3px rgba(160, 64, 96, 0.2);
+    }
+
+    .footer {
+      padding: 0 28px 22px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .premium-card {
+        padding: 24px 18px 20px;
+      }
+      .premium-card h1 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
 
-<body data-page="login" class="login-page">
+<body data-page="login" class="login-premium">
+  <div class="premium-overlay">
 
-  <!-- Top Navigation -->
-  <div class="top-nav">
-    <div style="font-size:20px; font-weight:600;">🍷 Wine Ratings</div>
-    <div>
-      <a href="register.html">Register</a>
-    </div>
-  </div>
-
-  <div class="login-overlay">
-    <section class="login-card">
-      <h1>Welcome Back</h1>
-      <div class="muted" style="margin-bottom:20px;">
-        Track your wines. Share your taste.
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🍷</div>
+        <div class="name">Wine Ratings</div>
       </div>
 
-      <form id="loginForm">
-        <label for="email">Email</label>
-        <input id="email" type="email" autocomplete="email" required>
+      <div class="navlinks">
+        <a href="public.html">Public</a>
+        <a href="register.html">Register</a>
+      </div>
+    </header>
 
-        <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+    <div class="wrap">
+      <section class="premium-card">
+        <h1>Welcome back</h1>
+        <p class="tagline">
+          A premium cellar for your palate — rate, remember, and share what’s worth pouring again.
+        </p>
 
-        <div class="actions" style="margin-top:15px">
-          <button type="submit">Login</button>
-          <a class="secondary"
-             style="text-align:center; padding:10px; border-radius:10px;"
-             href="register.html">
-             Create account
-          </a>
-        </div>
-      </form>
-    </section>
+        <div class="divider"></div>
+
+        <form id="loginForm">
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" required>
+
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+
+          <div class="actions" style="margin-top:15px">
+            <button type="submit">Login</button>
+            <a class="secondary"
+               style="text-align:center; padding:10px; border-radius:10px;"
+               href="register.html">
+              Create account
+            </a>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="footer">
+      Make a rating public to appear in the global feed.
+    </div>
+
   </div>
 
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
