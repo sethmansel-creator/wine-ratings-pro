@@ -1,5 +1,5 @@
 // IMPORTANT: keep this pointing at your local server
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://wine-ratings-pro.onrender.com/api";
 
 // ---------- helpers ----------
 function $(sel){ return document.querySelector(sel); }
