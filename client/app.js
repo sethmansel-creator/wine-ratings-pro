@@ -1,4 +1,3 @@
-// IMPORTANT: keep this pointing at your local server
 const API_BASE = "https://wine-ratings-pro.onrender.com/api";
 
 // ---------- helpers ----------
@@ -21,6 +20,35 @@ function clearToken(){ localStorage.removeItem("wr.token"); localStorage.removeI
 function setEmail(e){ localStorage.setItem("wr.email", e); }
 function getEmail(){ return localStorage.getItem("wr.email") || ""; }
 
+// ---------- toast ----------
+function ensureToastWrap(){
+  let wrap = document.querySelector(".toast-wrap");
+  if(!wrap){
+    wrap = document.createElement("div");
+    wrap.className = "toast-wrap";
+    document.body.appendChild(wrap);
+  }
+  return wrap;
+}
+
+function toast(type, title, msg, ms = 2600){
+  const wrap = ensureToastWrap();
+  const t = document.createElement("div");
+  t.className = `toast ${type || ""}`.trim();
+  t.innerHTML = `
+    <div class="t-title">${esc(title || "")}</div>
+    <div class="t-msg">${esc(msg || "")}</div>
+  `;
+  wrap.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = "0";
+    t.style.transform = "translateY(-6px)";
+    t.style.transition = "all 180ms ease";
+    setTimeout(() => t.remove(), 200);
+  }, ms);
+}
+
+// ---------- API ----------
 async function api(path, opts = {}){
   const headers = { "Content-Type":"application/json", ...(opts.headers||{}) };
   const token = getToken();
@@ -44,7 +72,6 @@ async function requireAuth(){
     return false;
   }
   try{
-    // Verify token by calling a protected endpoint
     await api("/ratings");
     return true;
   }catch{
@@ -54,22 +81,67 @@ async function requireAuth(){
   }
 }
 
+// ---------- nav helpers ----------
+function setActiveNav(){
+  const page = document.body?.dataset?.page || "";
+  const map = {
+    login: "login.html",
+    register: "register.html",
+    ratings: "ratings.html",
+    add: "add.html",
+    select: "select.html",
+    public: "public.html"
+  };
+  const current = map[page] || "";
+
+  document.querySelectorAll(".navlinks a").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    if(href === current) a.classList.add("active");
+  });
+
+  document.querySelectorAll(".bottomnav a").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    if(href === current) a.classList.add("active");
+  });
+}
+
+function ensureBottomNav(){
+  // Only show bottom nav on small screens (CSS handles display)
+  if(document.querySelector(".bottomnav")) return;
+
+  const nav = document.createElement("nav");
+  nav.className = "bottomnav";
+  nav.innerHTML = `
+    <a href="ratings.html">My</a>
+    <a href="add.html">Add</a>
+    <a href="select.html">Search</a>
+    <a href="public.html">Public</a>
+  `;
+  document.body.appendChild(nav);
+}
+
 function wireNav(){
   const who = $("#who");
   const logoutBtn = $("#logoutBtn");
+
   if(who) who.textContent = getToken() ? `Signed in: ${getEmail() || "user"}` : "Not signed in";
+
   if(logoutBtn){
     logoutBtn.addEventListener("click", () => {
       clearToken();
-      location.href = "login.html";
+      toast("success", "Signed out", "See you soon.");
+      setTimeout(() => location.href = "login.html", 500);
     });
   }
+
+  ensureBottomNav();
+  setActiveNav();
 }
 
 // ---------- pages ----------
 async function initLogin(){
   wireNav();
-  // If already logged in, go straight to ratings
+
   if(getToken()){
     const ok = await requireAuth();
     if(ok) location.href = "ratings.html";
@@ -90,19 +162,20 @@ async function initLogin(){
       setToken(r.token);
       setEmail(r.email);
 
-      // clear fields (fixes “text stays”)
       $("#email").value = "";
       $("#password").value = "";
 
-      location.href = "ratings.html";
+      toast("success", "Welcome back", "Login successful.");
+      setTimeout(() => location.href = "ratings.html", 450);
     }catch(err){
-      alert(err.message);
+      toast("error", "Login failed", err.message);
     }
   });
 }
 
 async function initRegister(){
   wireNav();
+
   $("#registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     try{
@@ -120,9 +193,10 @@ async function initRegister(){
       $("#email").value = "";
       $("#password").value = "";
 
-      location.href = "ratings.html";
+      toast("success", "Account created", "You’re signed in.");
+      setTimeout(() => location.href = "ratings.html", 450);
     }catch(err){
-      alert(err.message);
+      toast("error", "Register failed", err.message);
     }
   });
 }
@@ -132,7 +206,6 @@ async function initAdd(){
   const ok = await requireAuth();
   if(!ok) return;
 
-  // If select.html sent back a picked URL
   const params = new URLSearchParams(location.search);
   const picked = params.get("picked");
   if(picked) $("#sourceUrl").value = sanitizeUrl(picked);
@@ -150,22 +223,21 @@ async function initAdd(){
         notes: $("#notes").value.trim(),
         sourceUrl: sanitizeUrl($("#sourceUrl").value.trim()),
         favorite: $("#favorite").checked,
-        // NEW: send public/private flag to backend
         isPublic: $("#isPublic") ? $("#isPublic").checked : false,
         tags: $("#tags").value.split(",").map(s => s.trim()).filter(Boolean)
       };
 
       await api("/ratings", { method:"POST", body: JSON.stringify(payload) });
 
-      // clear fields after save (fixes “text stays”)
       e.target.reset();
       $("#myScore").value = "8.0";
       $("#favorite").checked = false;
       if($("#isPublic")) $("#isPublic").checked = false;
 
-      location.href = "ratings.html";
+      toast("success", "Saved", "Rating added.");
+      setTimeout(() => location.href = "ratings.html", 450);
     }catch(err){
-      alert(err.message);
+      toast("error", "Could not save", err.message);
     }
   });
 }
@@ -195,7 +267,7 @@ async function initRatings(){
       div.innerHTML = `
         <div class="itemhead">
           <div>
-            <div style="font-weight:750">${fav}${esc(r.wine_name)}</div>
+            <div style="font-weight:850">${fav}${esc(r.wine_name)}</div>
             <div class="muted" style="font-size:12px">${esc(r.style || "—")} • Vintage: ${esc(r.vintage || "—")}</div>
           </div>
           <div class="badge">My: ${Number(r.my_score).toFixed(1)}/10${we}</div>
@@ -220,37 +292,48 @@ async function initRatings(){
         const id = btn.getAttribute("data-del");
         try{
           await api(`/ratings/${encodeURIComponent(id)}`, { method:"DELETE" });
+          toast("success", "Deleted", "Rating removed.");
           await refresh();
         }catch(err){
-          alert(err.message);
+          toast("error", "Delete failed", err.message);
         }
       });
     });
   };
 
-  await refresh();
+  try{
+    await refresh();
+  }catch(err){
+    toast("error", "Could not load", err.message);
+  }
 }
 
 function initSelect(){
   wireNav();
+
   $("#openSearch").addEventListener("click", () => {
     const q = $("#q").value.trim();
-    if(!q) return alert("Type a wine name first.");
+    if(!q) return toast("error", "Missing", "Type a wine name first.");
     const url = `https://www.wineenthusiast.com/?drink_type=wine&s=${encodeURIComponent(q)}&search_type=ratings`;
     window.open(url, "_blank", "noopener,noreferrer");
   });
 
   $("#useUrl").addEventListener("click", () => {
     const u = sanitizeUrl($("#pasteUrl").value.trim());
-    if(!u) return alert("Paste a valid https:// URL.");
+    if(!u) return toast("error", "Invalid URL", "Paste a valid https:// URL.");
     location.href = `add.html?picked=${encodeURIComponent(u)}`;
   });
 
-  // optional: clear field
   $("#clearBtn").addEventListener("click", () => {
     $("#q").value = "";
     $("#pasteUrl").value = "";
+    toast("success", "Cleared", "Search fields cleared.");
   });
+}
+
+// Public page is standalone HTML (does its own fetch). But we still want nav + toasts ready.
+function initPublic(){
+  wireNav();
 }
 
 // ---------- boot ----------
@@ -262,4 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if(page === "add") initAdd();
   if(page === "ratings") initRatings();
   if(page === "select") initSelect();
+  if(page === "public") initPublic();
+
+  // If the page doesn't declare data-page, still wire nav safely
+  if(!page) wireNav();
 });

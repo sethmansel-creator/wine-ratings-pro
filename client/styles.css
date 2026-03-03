@@ -1,19 +1,24 @@
 /* =========================
    PREMIUM GLOBAL THEME
    (No hero images here)
+   + Mobile bottom nav
+   + Active nav styles
+   + Toast notifications
    ========================= */
 
 :root{
   --bg0: #070709;
   --bg1: #0b0b0d;
+
   --panel: rgba(18,18,22,0.68);
   --panel2: rgba(18,18,22,0.55);
+
   --border: rgba(255,255,255,0.10);
   --text: rgba(255,255,255,0.92);
   --muted: rgba(255,255,255,0.65);
 
   --wine: rgba(160, 64, 96, 0.65);
-  --wine2: rgba(160, 64, 96, 0.25);
+  --wine2: rgba(160, 64, 96, 0.22);
 
   --gold: rgba(214,174,92,0.98);
   --gold2: rgba(214,174,92,0.20);
@@ -23,14 +28,10 @@
 
   --radius: 18px;
   --radius2: 14px;
-  --pad: 18px;
 }
 
 *{ box-sizing: border-box; }
-
-html, body{
-  height: 100%;
-}
+html, body{ height: 100%; }
 
 body{
   margin: 0;
@@ -46,10 +47,7 @@ body{
 /* =========================
    LINKS
    ========================= */
-a{
-  color: rgba(255,255,255,0.90);
-  text-decoration: none;
-}
+a{ color: rgba(255,255,255,0.90); text-decoration: none; }
 a:hover{ text-decoration: underline; }
 
 /* =========================
@@ -110,9 +108,18 @@ header{
   font-size: 13px;
   letter-spacing: 0.25px;
 }
+
 .navlinks a:hover{
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.08);
+  text-decoration: none;
+}
+
+/* Active tab highlight */
+.navlinks a.active{
+  background: rgba(214,174,92,0.10);
+  border-color: rgba(214,174,92,0.22);
+  color: rgba(214,174,92,0.95);
   text-decoration: none;
 }
 
@@ -138,16 +145,8 @@ main{
   padding: 22px 18px 48px;
 }
 
-h1, h2, h3{
-  margin: 0 0 10px;
-  letter-spacing: 0.3px;
-}
-
-.muted{
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.4;
-}
+h1, h2, h3{ margin: 0 0 10px; letter-spacing: 0.3px; }
+.muted{ color: var(--muted); font-size: 13px; line-height: 1.4; }
 
 hr{
   border: none;
@@ -167,7 +166,6 @@ hr{
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
 }
-
 .card + .card{ margin-top: 16px; }
 
 /* =========================
@@ -193,10 +191,7 @@ input, textarea{
   font-size: 14px;
 }
 
-textarea{
-  min-height: 110px;
-  resize: vertical;
-}
+textarea{ min-height: 110px; resize: vertical; }
 
 input:focus, textarea:focus{
   outline: none;
@@ -249,27 +244,14 @@ button:active{ transform: translateY(0px); }
   box-shadow: var(--shadow2);
   transition: transform 0.12s ease, background 0.12s ease;
 }
-.secondary:hover{
-  background: rgba(255,255,255,0.08);
-  text-decoration: none;
-  transform: translateY(-1px);
-}
+.secondary:hover{ background: rgba(255,255,255,0.08); text-decoration: none; transform: translateY(-1px); }
 .secondary:active{ transform: translateY(0px); }
-
-/* make secondary buttons used as <button class="secondary"> match */
-button.secondary{
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.90);
-  font-weight: 800;
-}
+button.secondary{ background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.90); font-weight: 800; }
 
 /* =========================
-   LIST / ITEMS (ratings)
+   LIST / ITEMS
    ========================= */
-.list{
-  display: grid;
-  gap: 14px;
-}
+.list{ display: grid; gap: 14px; }
 
 .item{
   background: var(--panel2);
@@ -287,12 +269,8 @@ button.secondary{
   gap: 12px;
 }
 
-.item a{
-  color: rgba(214,174,92,0.95);
-}
-.item a:hover{
-  text-decoration: underline;
-}
+.item a{ color: rgba(214,174,92,0.95); }
+.item a:hover{ text-decoration: underline; }
 
 code{
   padding: 2px 6px;
@@ -303,20 +281,99 @@ code{
 }
 
 /* =========================
-   RESPONSIVE
+   TOASTS
    ========================= */
+.toast-wrap{
+  position: fixed;
+  z-index: 9999;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.toast{
+  border-radius: 14px;
+  padding: 12px 12px;
+  background: rgba(14,14,16,0.78);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 60px rgba(0,0,0,0.65);
+  animation: toastIn 0.22s ease-out both;
+}
+
+.toast .t-title{
+  font-weight: 850;
+  letter-spacing: 0.25px;
+  margin-bottom: 4px;
+}
+
+.toast .t-msg{
+  color: rgba(255,255,255,0.78);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.toast.success{
+  border-color: rgba(214,174,92,0.22);
+}
+.toast.error{
+  border-color: rgba(160,64,96,0.30);
+}
+
+@keyframes toastIn{
+  from{ opacity: 0; transform: translateY(-6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   MOBILE BOTTOM NAV
+   ========================= */
+.bottomnav{
+  display: none;
+}
+
 @media (max-width: 720px){
-  .row{
-    grid-template-columns: 1fr;
+  .row{ grid-template-columns: 1fr; }
+  .actions{ grid-template-columns: 1fr; }
+
+  .nav{ flex-direction: column; align-items: flex-start; }
+  .navlinks{ justify-content: flex-start; }
+
+  /* leave space for bottom nav */
+  main{ padding-bottom: 96px; }
+
+  .bottomnav{
+    display: flex;
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    z-index: 60;
+    border-radius: 18px;
+    background: rgba(10,10,12,0.68);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.60);
+    overflow: hidden;
   }
-  .actions{
-    grid-template-columns: 1fr;
+
+  .bottomnav a{
+    flex: 1;
+    text-align: center;
+    padding: 12px 6px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    color: rgba(255,255,255,0.82);
+    border-right: 1px solid rgba(255,255,255,0.08);
   }
-  .nav{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .navlinks{
-    justify-content: flex-start;
+
+  .bottomnav a:last-child{ border-right: none; }
+
+  .bottomnav a.active{
+    background: rgba(214,174,92,0.12);
+    color: rgba(214,174,92,0.95);
   }
 }
