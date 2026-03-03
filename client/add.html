@@ -14,6 +14,7 @@
       <a href="ratings.html">My Ratings</a>
       <a href="add.html">Add Rating</a>
       <a href="select.html">Wine Enthusiast</a>
+      <a href="public.html">Public</a>
       <button class="secondary" id="logoutBtn" style="width:auto;">Logout</button>
       <span class="badge" id="who"></span>
     </div>
@@ -64,6 +65,12 @@
       <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
         <input id="favorite" type="checkbox" style="width:auto">
         <label for="favorite" style="margin:0">Favorite</label>
+      </div>
+
+      <!-- NEW: Public toggle -->
+      <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+        <input id="isPublic" type="checkbox" style="width:auto">
+        <label for="isPublic" style="margin:0">Public (anyone with my public link can see this)</label>
       </div>
 
       <label for="sourceUrl">Source link (optional)</label>

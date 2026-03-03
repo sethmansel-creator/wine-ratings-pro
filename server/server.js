@@ -21,7 +21,7 @@ app.use(express.json());
 
 const db = openDb(DB_FILE);
 
-// Initialize database
+// Initialize database (existing tables)
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 db.exec(schema);
 
@@ -38,6 +38,28 @@ function safeUrl(url) {
     return "";
   }
 }
+
+function makeSlugFromEmail(email, id) {
+  const base = (email.split("@")[0] || "user")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 24) || "user";
+  return `${base}-${id.slice(0, 6)}`;
+}
+
+async function migrate() {
+  // Add columns (ignore error if they already exist)
+  try { await run(db, "ALTER TABLE users ADD COLUMN display_name TEXT"); } catch {}
+  try { await run(db, "ALTER TABLE users ADD COLUMN public_slug TEXT"); } catch {}
+  try { await run(db, "ALTER TABLE ratings ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0"); } catch {}
+
+  // Optional helpful indexes
+  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_users_public_slug ON users(public_slug)"); } catch {}
+  try { await run(db, "CREATE INDEX IF NOT EXISTS idx_ratings_user_public ON ratings(user_id, is_public)"); } catch {}
+}
+
+// Run migration at startup
+await migrate();
 
 // Health check
 app.get("/api/health", (_, res) => {
@@ -59,10 +81,20 @@ app.post("/api/auth/register", async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
   const id = uid();
 
-  await run(db,
+  await run(
+    db,
     "INSERT INTO users (id,email,password_hash,created_at) VALUES (?,?,?,?)",
     [id, email, hash, Date.now()]
   );
+
+  // Set default display_name + public_slug for sharing
+  const displayName = (email.split("@")[0] || "Wine Lover").slice(0, 40);
+  const slug = makeSlugFromEmail(email, id);
+  await run(db, "UPDATE users SET display_name=?, public_slug=? WHERE id=?", [
+    displayName,
+    slug,
+    id
+  ]);
 
   const token = signToken({ userId: id, email }, JWT_SECRET);
   res.json({ token, email });
@@ -82,9 +114,47 @@ app.post("/api/auth/login", async (req, res) => {
   res.json({ token, email: user.email });
 });
 
-// -------- RATINGS --------
+// -------- PUBLIC (no login) --------
+// Anyone can view a user's PUBLIC ratings by slug
+app.get("/api/public/:slug", async (req, res) => {
+  const slug = (req.params.slug || "").toLowerCase().trim();
+  if (!slug) return res.status(400).json({ error: "Missing slug." });
+
+  const user = await get(
+    db,
+    "SELECT id, display_name, public_slug FROM users WHERE lower(public_slug) = ?",
+    [slug]
+  );
+  if (!user) return res.status(404).json({ error: "Public profile not found." });
+
+  const ratings = await all(
+    db,
+    `
+    SELECT wine_name, vintage, style, price, my_score, we_score, notes, source_url, favorite, tags, created_at
+    FROM ratings
+    WHERE user_id = ? AND is_public = 1
+    ORDER BY created_at DESC
+    `,
+    [user.id]
+  );
+
+  res.json({
+    user: {
+      displayName: user.display_name || "Wine Lover",
+      slug: user.public_slug
+    },
+    ratings: ratings.map(r => ({
+      ...r,
+      favorite: !!r.favorite,
+      tags: (() => { try { return JSON.parse(r.tags || "[]"); } catch { return []; } })()
+    }))
+  });
+});
+
+// -------- RATINGS (private, logged in) --------
 app.get("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
-  const rows = await all(db,
+  const rows = await all(
+    db,
     "SELECT * FROM ratings WHERE user_id = ? ORDER BY created_at DESC",
     [req.user.userId]
   );
@@ -92,7 +162,8 @@ app.get("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
   res.json(rows.map(r => ({
     ...r,
     favorite: !!r.favorite,
-    tags: JSON.parse(r.tags || "[]")
+    tags: JSON.parse(r.tags || "[]"),
+    is_public: !!r.is_public
   })));
 });
 
@@ -101,10 +172,12 @@ app.post("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
   const id = uid();
   const now = Date.now();
 
+  const isPublic = b.isPublic ? 1 : 0;
+
   await run(db, `
     INSERT INTO ratings
-    (id,user_id,wine_name,vintage,style,price,my_score,we_score,notes,source_url,favorite,tags,created_at,updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    (id,user_id,wine_name,vintage,style,price,my_score,we_score,notes,source_url,favorite,tags,is_public,created_at,updated_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `, [
     id,
     req.user.userId,
@@ -118,6 +191,7 @@ app.post("/api/ratings", authMiddleware(JWT_SECRET), async (req, res) => {
     safeUrl(b.sourceUrl),
     b.favorite ? 1 : 0,
     JSON.stringify(b.tags || []),
+    isPublic,
     now,
     now
   ]);

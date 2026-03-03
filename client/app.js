@@ -150,6 +150,8 @@ async function initAdd(){
         notes: $("#notes").value.trim(),
         sourceUrl: sanitizeUrl($("#sourceUrl").value.trim()),
         favorite: $("#favorite").checked,
+        // NEW: send public/private flag to backend
+        isPublic: $("#isPublic") ? $("#isPublic").checked : false,
         tags: $("#tags").value.split(",").map(s => s.trim()).filter(Boolean)
       };
 
@@ -159,6 +161,7 @@ async function initAdd(){
       e.target.reset();
       $("#myScore").value = "8.0";
       $("#favorite").checked = false;
+      if($("#isPublic")) $("#isPublic").checked = false;
 
       location.href = "ratings.html";
     }catch(err){
